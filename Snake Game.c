@@ -58,6 +58,7 @@ void displayBoard(char board[][BOARD_SIZE]) {
       }
     }
   }
+  putc('\n', stdout);
 }
 
 int main(int argc, char const *argv[])
