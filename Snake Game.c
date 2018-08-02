@@ -82,6 +82,8 @@ void markFood(Food *food, char board[][BOARD_SIZE]) {
 
 // display board to the screen
 void displayBoard(char board[][BOARD_SIZE]) {
+  puts("<----------------Snake-Game---------------->");
+
   for(int i = 0; i < BOARD_SIZE; i++) {
     for(int j = 0; j < BOARD_SIZE; j++) {
       if((i == 0 || i == BOARD_SIZE - 1)) {
@@ -99,22 +101,60 @@ void displayBoard(char board[][BOARD_SIZE]) {
       }
     }
   }
-  putc('\n', stdout);
+  putchar('\n');
+  puts("<----------------Snake-Game---------------->");
 }
 
 
-int main(int argc, char const *argv[])
-{
-  Snake *snakeHead = NULL, *snakeTail = NULL;
-  Food *food;
+void rulesAndControls() {
+  puts("<----------------Rules---------------->");
+  puts("Don't touch the Edges");
+  putchar('\n');
+  puts("<----------------Controls---------------->");
+  puts("Press 'W' or 'w' for UP");
+  puts("Press 'S' or 's' for DOWN");
+  puts("Press 'A' or 'a' for LEFT");
+  puts("Press 'D' or 'd' for RIGHT");
+  putchar('\n');
+}
+
+bool startGame() {
+  puts(":::Press 'ENTER' to start or 'Esc to Quit:::");
+  char input;
   
+  while((input = fgetc(stdin)) != '\n' && input != 27) {       // 27 is the escape code for ESC
+    while(getchar() != '\n');
+  }
+  
+  if(input == '\n') {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+int main(int argc, char const *argv[])
+{  
+  rulesAndControls();
+
+  if(!startGame()) {
+    puts("You have exited the Snake-Game.");
+    exit(0);
+  }
+
+  system("clear");
+
   char board[BOARD_SIZE][BOARD_SIZE];
   memset(board, ' ', sizeof(board[0][0]) * BOARD_SIZE * BOARD_SIZE);
 
+  Snake *snakeHead = NULL, *snakeTail = NULL;
   createSnake(&snakeHead, &snakeTail);
-  putSnakeOnBoard(snakeHead, board);
-
+  
+  Food *food;
+  
   food = createFood(snakeHead);
+  
+  putSnakeOnBoard(snakeHead, board);
   markFood(food, board);
 
   displayBoard(board);
