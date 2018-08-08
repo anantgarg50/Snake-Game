@@ -1,163 +1,184 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <stdbool.h>
+#include "snake.c"
+#include "food.c"
+#include "board.c"
 
-#define BOARD_SIZE 12       //define board size here
-
-
-// Snake
-struct Snake{
-  int x;      // X-Coordinate on board
-  int y;      // Y-Coordinate on board
-  unsigned char display;       // display value on board
-  struct Snake *next;        // Next node of Snake
-};
-typedef struct Snake Snake;
-
-
-// Food
-struct Food{
-  int x;      // X-Coordinate on board
-  int y;      // Y-Coordinate on board
-  char display;       // display value on board
-};
-typedef struct Food Food;
-
-
-// create initial snake (just head and tail)
-void createSnake(Snake **head, Snake **tail) {
-  *head = (Snake *)malloc(sizeof(Snake));
-  (*head)->x = (BOARD_SIZE - 2) / 2;
-  (*head)->y = (BOARD_SIZE - 2) / 2;
-  (*head)->display = 'A';
-  
-  *tail = (Snake *)malloc(sizeof(Snake));
-  (*tail)->x = (*head)->x + 1;
-  (*tail)->y = (*head)->y;
-  (*tail)->display = 'Y';
-  (*tail)->next = NULL;
-
-  (*head)->next = *tail;
-}
-
-
-// mark snake on board
-void putSnakeOnBoard(Snake *head, char board[][BOARD_SIZE]) {
-  while(head) {
-    board[head->x][head->y] = head->display;
-    head = head->next;
-  }
-}
-
-
-// create food for snake
-Food* createFood(Snake *head) {
-  Food *food = (Food *)malloc(sizeof(Food));
-  
-  while(head) {
-    do {
-      srand(time(NULL));
-      food->x = rand() % (BOARD_SIZE - 2) + 1;
-
-      srand(time(NULL));
-      food->y = rand() % (BOARD_SIZE - 2) + 1;
-    } while(head->x == food->x || head->y == food->y);
-    
-    head = head->next;
-  }
-
-  food->display = '0';
-  
-  return food;
-}
-
-
-// mark food on the board
-void markFood(Food *food, char board[][BOARD_SIZE]) {
-  board[food->x][food->y] = food->display;
-}
-
-
-// display board to the screen
-void displayBoard(char board[][BOARD_SIZE]) {
-  puts("<----------------Snake-Game---------------->");
-
-  for(int i = 0; i < BOARD_SIZE; i++) {
-    for(int j = 0; j < BOARD_SIZE; j++) {
-      if((i == 0 || i == BOARD_SIZE - 1)) {
-        putc('-', stdout);
-        if(i == 0 && j == BOARD_SIZE - 1) {
-          putc('\n', stdout);
-        }  
-      } else if(j == 0 || j == BOARD_SIZE - 1) {
-        putc('|', stdout);
-        if(j == BOARD_SIZE - 1) {
-          putc('\n', stdout);
-        }
-      } else {
-        putc(board[i][j], stdout);
-      }
-    }
-  }
-  putchar('\n');
-  puts("<----------------Snake-Game---------------->");
-}
-
-
-void rulesAndControls() {
-  puts("<----------------Rules---------------->");
-  puts("Don't touch the Edges");
-  putchar('\n');
-  puts("<----------------Controls---------------->");
-  puts("Press 'W' or 'w' for UP");
-  puts("Press 'S' or 's' for DOWN");
-  puts("Press 'A' or 'a' for LEFT");
-  puts("Press 'D' or 'd' for RIGHT");
-  putchar('\n');
-}
-
-bool startGame() {
-  puts(":::Press 'ENTER' to start or 'Esc to Quit:::");
-  char input;
-  
-  while((input = fgetc(stdin)) != '\n' && input != 27) {       // 27 is the escape code for ESC
-    while(getchar() != '\n');
-  }
-  
-  if(input == '\n') {
-    return true;
-  } else {
-    return false;
-  }
-}
+void rulesAndControls();
+void startGame();
+void startNew();
+void loadLastSaved();
+void mainGame(Snake *, Food *, bool, char[][BOARD_Y]);
+void pauseGame();
+int inputMove();
 
 int main(int argc, char const *argv[])
-{  
+{
   rulesAndControls();
+  startGame();
 
-  if(!startGame()) {
+  return 0;
+}
+
+// Rules
+void rulesAndControls()
+{
+  puts("<----------------Rules---------------->");
+  puts("Beware! Don't let the Snake bite itself.");
+  putchar('\n');
+
+  puts("<----------------Controls---------------->");
+  puts("Press 'Up Arrow' for UP");
+  puts("Press 'Down Arrow' for DOWN");
+  puts("Press 'Left Arrow' for LEFT");
+  puts("Press 'Right Arrow' for RIGHT");
+  puts("Press 'P' to Pause the Game");
+  putchar('\n');
+}
+
+// start condition
+void startGame()
+{
+  char input;
+  puts(":::Press 'ENTER' to start or 'Esc' to Quit:::");
+  printf("-->");
+
+  while ((input = fgetc(stdin)) != '\n' && input != '\033')
+  {
+    while (getchar() != '\n')
+      ;
+    puts("Enter correct choice!");
+    printf("-->");
+  }
+
+  if (input != '\n')
+  {
     puts("You have exited the Snake-Game.");
     exit(0);
   }
+  else
+  {
+    puts(":::Press 'N' to start new game or 'L' to load last saved game:::");
+    printf("-->");
+
+    while ((input = fgetc(stdin)) != 'N' && input != 'n' && input != 'L' && input != 'l')
+    {
+      while (getchar() != '\n')
+        ;
+      puts("Enter correct choice!");
+      printf("-->");
+    }
+
+    while (getchar() != '\n')
+      ;
+
+    switch (input)
+    {
+    case 'N':
+    case 'n':
+      startNew();
+      break;
+    case 'L':
+    case 'l':
+      loadLastSaved();
+      break;
+    }
+  }
+}
+
+void startNew()
+{
+  char board[BOARD_X][BOARD_Y];
+  memset(board, ' ', sizeof(board[0][0]) * BOARD_X * BOARD_Y);
+
+  Snake *snakeHead = createNewSnake();
+
+  mainGame(snakeHead, NULL, true, board);
+}
+
+void loadLastSaved()
+{
+}
+
+void mainGame(Snake *snakeHead, Food *food, bool foodEaten, char board[][BOARD_Y])
+{
+  bool gameOver = false;
+  int test = 5;
+  int i;
+  do
+  {
+    putSnakeOnBoard(snakeHead, board);
+
+    if (foodEaten)
+    {
+      food = createFood(board);
+      foodEaten = false;
+    }
+    markFood(food, board);
+
+    displayBoard(board);
+
+    i = inputMove();
+  } while (--test);
 
   system("clear");
+  puts(":::Well Played! Game-Over:::");
+}
 
-  char board[BOARD_SIZE][BOARD_SIZE];
-  memset(board, ' ', sizeof(board[0][0]) * BOARD_SIZE * BOARD_SIZE);
+void pauseGame()
+{
+  char input;
 
-  Snake *snakeHead = NULL, *snakeTail = NULL;
-  createSnake(&snakeHead, &snakeTail);
-  
-  Food *food;
-  
-  food = createFood(snakeHead);
-  
-  putSnakeOnBoard(snakeHead, board);
-  markFood(food, board);
+  while (getchar() != '\n')
+    ;
 
-  displayBoard(board);
-  
-  return 0;
+  do
+  {
+    puts(":::Game Paused! Press 'ENTER' to continue:::");
+    printf("-->");
+    input = getchar();
+    if (input != '\n')
+    {
+      while (getchar() != '\n')
+        ;
+    }
+  } while (input != '\n');
+}
+
+int inputMove()
+{
+  char input;
+  int move;
+
+  if ((input = getchar()) == '\033')
+  {
+    getchar();
+    switch ((input = getchar()))
+    {
+    case 'A':
+      move = 1; // UP
+      break;
+    case 'B':
+      move = 2; // DOWN
+      break;
+    case 'C':
+      move = 3; // RIGHT
+      break;
+    case 'D':
+      move = 4; // LEFT
+      break;
+    }
+  }
+  else if (input == 'P' || input == 'p')
+  {
+    pauseGame();
+    return 0;
+  }
+
+  while (getchar() != '\n')
+    ;
+
+  return move;
 }
