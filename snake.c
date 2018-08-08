@@ -39,29 +39,52 @@ void putSnakeOnBoard(Snake *head, char board[][BOARD_Y])
   }
 }
 
-void checkSnakeBite(Snake *head, char board[][BOARD_Y])
+bool checkSnakeBite(Snake *head, char board[][BOARD_Y])
 {
-}
-void growSnake()
-{
-}
-
-void moveSnakeUp(Snake *head, char board[][BOARD_Y])
-{
-  int prevHeadX = head->x, prevHeadY = head->y, tempX, tempY;
-
-  if (head->x - 1 == 0)
+  if (board[head->x][head->y] == '#' || board[head->x][head->y] == 'Y')
   {
-    head->x = BOARD_X - 2;
-  }
-  else
-  {
-    head->x--;
+    return true;
   }
 
-  if (head->x)
+  return false;
+}
 
-    head = head->next;
+void growSnake(Snake **head)
+{
+  Snake *newHead = (Snake *)malloc(sizeof(Snake));
+
+  newHead->display = 'A';
+  newHead->next = *head;
+
+  if ((*head)->x + 1 == (*head)->next->x)
+  {
+    newHead->x = (*head)->x - 1;
+    newHead->y = (*head)->y;
+  }
+  else if ((*head)->x - 1 == (*head)->next->x)
+  {
+    newHead->x = (*head)->x + 1;
+    newHead->y = (*head)->y;
+  }
+  else if ((*head)->y + 1 == (*head)->next->y)
+  {
+    newHead->x = (*head)->x;
+    newHead->y = (*head)->y - 1;
+  }
+  else if ((*head)->y - 1 == (*head)->next->y)
+  {
+    newHead->x = (*head)->x;
+    newHead->y = (*head)->y + 1;
+  }
+
+  (*head)->display = '#';
+
+  *head = newHead;
+}
+
+void updateSnake(Snake *head, int prevHeadX, int prevHeadY)
+{
+  int tempX, tempY;
   while (head)
   {
     tempX = head->x;
@@ -74,7 +97,24 @@ void moveSnakeUp(Snake *head, char board[][BOARD_Y])
   }
 }
 
-void moveSnakeDown(Snake *head, char board[][BOARD_Y])
+void moveSnakeUp(Snake *head)
+{
+  int prevHeadX = head->x, prevHeadY = head->y;
+
+  if (head->x - 1 == 0)
+  {
+    head->x = BOARD_X - 2;
+  }
+  else
+  {
+    head->x--;
+  }
+
+  head = head->next;
+  updateSnake(head, prevHeadX, prevHeadY);
+}
+
+void moveSnakeDown(Snake *head)
 {
   int prevHeadX = head->x, prevHeadY = head->y, tempX, tempY;
   if (head->x + 1 == BOARD_X - 1)
@@ -86,19 +126,10 @@ void moveSnakeDown(Snake *head, char board[][BOARD_Y])
     head->x++;
   }
   head = head->next;
-  while (head)
-  {
-    tempX = head->x;
-    tempY = head->y;
-    head->x = prevHeadX;
-    head->y = prevHeadY;
-    prevHeadX = tempX;
-    prevHeadY = tempY;
-    head = head->next;
-  }
+  updateSnake(head, prevHeadX, prevHeadY);
 }
 
-void moveSnakeLeft(Snake *head, char board[][BOARD_Y])
+void moveSnakeLeft(Snake *head)
 {
   int prevHeadX = head->x, prevHeadY = head->y, tempX, tempY;
   if (head->y - 1 == 0)
@@ -110,19 +141,10 @@ void moveSnakeLeft(Snake *head, char board[][BOARD_Y])
     head->y--;
   }
   head = head->next;
-  while (head)
-  {
-    tempX = head->x;
-    tempY = head->y;
-    head->x = prevHeadX;
-    head->y = prevHeadY;
-    prevHeadX = tempX;
-    prevHeadY = tempY;
-    head = head->next;
-  }
+  updateSnake(head, prevHeadX, prevHeadY);
 }
 
-void moveSnakeRight(Snake *head, char board[][BOARD_Y])
+void moveSnakeRight(Snake *head)
 {
   int prevHeadX = head->x, prevHeadY = head->y, tempX, tempY;
   if (head->y + 1 == BOARD_Y - 1)
@@ -134,18 +156,24 @@ void moveSnakeRight(Snake *head, char board[][BOARD_Y])
     head->y++;
   }
   head = head->next;
-  while (head)
-  {
-    tempX = head->x;
-    tempY = head->y;
-    head->x = prevHeadX;
-    head->y = prevHeadY;
-    prevHeadX = tempX;
-    prevHeadY = tempY;
-    head = head->next;
-  }
+  updateSnake(head, prevHeadX, prevHeadY);
 }
 
-void moveSnake(Snake **head, char board[][BOARD_Y])
+void moveSnake(Snake *head, int move)
 {
+  switch (move)
+  {
+  case 1:
+    moveSnakeUp(head);
+    break;
+  case 2:
+    moveSnakeDown(head);
+    break;
+  case 3:
+    moveSnakeRight(head);
+    break;
+  case 4:
+    moveSnakeLeft(head);
+    break;
+  }
 }

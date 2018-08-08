@@ -3,6 +3,7 @@
 #include <malloc.h>
 #include "./headers/food.h"
 #include "./headers/board.h"
+#include "./headers/snake.h"
 
 // create food for snake
 Food *createFood(char board[][BOARD_Y])
@@ -27,4 +28,15 @@ Food *createFood(char board[][BOARD_Y])
 void markFood(Food *food, char board[][BOARD_Y])
 {
   board[food->x][food->y] = food->display;
+}
+
+bool hasEatenFood(Snake **head, Food *food)
+{
+  if ((*head)->x == food->x && (*head)->y == food->y)
+  {
+    growSnake(head);
+    return true;
+  }
+
+  return false;
 }

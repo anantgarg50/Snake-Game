@@ -13,6 +13,7 @@ void loadLastSaved();
 void mainGame(Snake *, Food *, bool, char[][BOARD_Y]);
 void pauseGame();
 int inputMove();
+void saveCurrentGame(Snake *, Food *);
 
 int main(int argc, char const *argv[])
 {
@@ -35,6 +36,7 @@ void rulesAndControls()
   puts("Press 'Left Arrow' for LEFT");
   puts("Press 'Right Arrow' for RIGHT");
   puts("Press 'P' to Pause the Game");
+  puts("Press 'S' to save the game and exit");
   putchar('\n');
 }
 
@@ -91,7 +93,6 @@ void startGame()
 void startNew()
 {
   char board[BOARD_X][BOARD_Y];
-  memset(board, ' ', sizeof(board[0][0]) * BOARD_X * BOARD_Y);
 
   Snake *snakeHead = createNewSnake();
 
@@ -105,10 +106,10 @@ void loadLastSaved()
 void mainGame(Snake *snakeHead, Food *food, bool foodEaten, char board[][BOARD_Y])
 {
   bool gameOver = false;
-  int test = 5;
-  int i;
+  int move;
   do
   {
+    memset(board, ' ', sizeof(board[0][0]) * BOARD_X * BOARD_Y);
     putSnakeOnBoard(snakeHead, board);
 
     if (foodEaten)
@@ -120,8 +121,15 @@ void mainGame(Snake *snakeHead, Food *food, bool foodEaten, char board[][BOARD_Y
 
     displayBoard(board);
 
-    i = inputMove();
-  } while (--test);
+    move = inputMove();
+    if (!move)
+    {
+      saveCurrentGame(snakeHead, food);
+    }
+    moveSnake(snakeHead, move);
+    foodEaten = hasEatenFood(&snakeHead, food);
+    gameOver = checkSnakeBite(snakeHead, board);
+  } while (!gameOver);
 
   system("clear");
   puts(":::Well Played! Game-Over:::");
@@ -174,6 +182,10 @@ int inputMove()
   else if (input == 'P' || input == 'p')
   {
     pauseGame();
+    return -1;
+  }
+  else if (input == 'S' || input == 's')
+  {
     return 0;
   }
 
@@ -181,4 +193,29 @@ int inputMove()
     ;
 
   return move;
+}
+
+void saveCurrentGame(Snake *head, Food *food)
+{
+  FILE *saveGame = fopen("./Saved Game/last_save.txt", "w");
+
+  if (saveGame == NULL)
+  {
+    puts("There was a problem in saving current game...exiting!");
+    exit(1);
+  }
+
+  fprintf(saveGame, "%c\n%d %d %c\n", 'f', food->x, food->y, food->display);
+
+  fprintf(saveGame, "%c\n", 's');
+  while (head)
+  {
+    fprintf(saveGame, "%d %d %c\n", head->x, head->y, head->display);
+    head = head->next;
+  }
+
+  puts("Game saved successfully!");
+  fclose(saveGame);
+
+  exit(0);
 }

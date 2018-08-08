@@ -4,7 +4,7 @@
 // display board to the screen
 void displayBoard(char board[][BOARD_Y])
 {
-  //system("clear");
+  system("clear");
   puts("<----------------Snake-Game---------------->");
 
   for (int i = 0; i < BOARD_X; i++)
