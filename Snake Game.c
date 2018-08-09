@@ -101,6 +101,38 @@ void startNew()
 
 void loadLastSaved()
 {
+  char board[BOARD_X][BOARD_Y];
+
+  Snake *snakeHead = NULL;
+  Food *food = NULL;
+
+  FILE *lastSavedGame = fopen("./Saved Game/last_save.txt", "r");
+  if (lastSavedGame == NULL)
+  {
+    puts("Couldn't load last saved game!...exiting");
+    exit(1);
+  }
+  int x, y;
+  char display;
+
+  fscanf(lastSavedGame, "%*c");
+  fscanf(lastSavedGame, "%d %d %c", &x, &y, &display);
+  food = recreateOldFood(x, y, display);
+
+  while (fgetc(lastSavedGame) != '\n')
+    ;
+
+  fscanf(lastSavedGame, "%*c");
+  while (fscanf(lastSavedGame, "%d %d %c", &x, &y, &display) != EOF)
+  {
+    while (fgetc(lastSavedGame) != '\n')
+      ;
+    recreateOldSnake(&snakeHead, x, y, display);
+  }
+
+  fclose(lastSavedGame);
+
+  mainGame(snakeHead, food, false, board);
 }
 
 void mainGame(Snake *snakeHead, Food *food, bool foodEaten, char board[][BOARD_Y])

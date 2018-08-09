@@ -29,6 +29,29 @@ Snake *createNewSnake()
   return head;
 }
 
+void recreateOldSnake(Snake **head, int x, int y, char display)
+{
+  Snake *temp = (Snake *)malloc(sizeof(Snake));
+  temp->x = x;
+  temp->y = y;
+  temp->display = display;
+  temp->next = NULL;
+
+  Snake *tempHead = *head;
+  if (*head)
+  {
+    while (tempHead->next)
+    {
+      tempHead = tempHead->next;
+    }
+    tempHead->next = temp;
+  }
+  else
+  {
+    *head = temp;
+  }
+}
+
 // mark snake on board
 void putSnakeOnBoard(Snake *head, char board[][BOARD_Y])
 {

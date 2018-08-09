@@ -24,6 +24,17 @@ Food *createFood(char board[][BOARD_Y])
   return food;
 }
 
+Food *recreateOldFood(int x, int y, char display)
+{
+  Food *food = (Food *)malloc(sizeof(Food));
+
+  food->x = x;
+  food->y = y;
+  food->display = display;
+
+  return food;
+}
+
 // mark food on the board
 void markFood(Food *food, char board[][BOARD_Y])
 {
